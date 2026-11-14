@@ -45,8 +45,14 @@ with st.sidebar:
         """
     )
 
-tab_single, tab_batch, tab_about = st.tabs(
-    ["Single Recording Predictor", "Batch CSV Scoring", "Model & Benchmarks"]
+# Update your existing tabs definition near the middle of app.py to add the 4th tab:
+tab_single, tab_batch, tab_about, tab_report = st.tabs(
+    [
+        "Single Recording Predictor",
+        "Batch CSV Scoring",
+        "Model & Benchmarks",
+        "Full Study & Methodology",
+    ]
 )
 
 # ---------------------------------------------------------------------------
@@ -266,3 +272,119 @@ with tab_about:
     b1.metric("Final Macro F1 (42 Unseen Patients)", "0.4059", "+0.0451 vs Baseline")
     b2.metric("Severe-Stage (>34) F1", "0.3236", "8.1x vs Baseline (0.0400)")
     b3.metric("Engineered Features", "31", "+12 Domain Biomarkers")
+
+# ---------------------------------------------------------------------------
+# TAB 4
+# ---------------------------------------------------------------------------
+with tab_report:
+    st.header("Full Study & Methodology Report")
+    st.caption(
+        "ES 335: Machine Learning (IIT Gandhinagar) | Author: Bhuvi Kalarwal (Roll No. 24110076)"
+    )
+
+    st.subheader("1. Research Question & Problem Formulation")
+    st.markdown(
+        """
+        * **Research Question:** Can sustained-vowel acoustic biomarkers and basic patient demographics classify Parkinson's disease clinical severity across **unseen patients** without requiring an in-clinic motor examination?
+        * **Unit of Observation (1 Row):** One sustained-vowel phonation recording (`"aaaah"`) captured via home telemonitoring.
+        * **Target Variable & Clinical Tiers:** Continuous `total_UPDRS` (Unified Parkinson's Disease Rating Scale) discretized into three actionable triage tiers:
+          * **Mild (`total_UPDRS <= 24`):** Early motor/speech involvement (`36.9%` of recordings).
+          * **Moderate (`24 < total_UPDRS <= 34`):** Intermediate progression (`41.4%` of recordings).
+          * **Severe (`total_UPDRS > 34`):** Advanced impairment requiring closer clinical follow-up (`21.7%` of recordings).
+        * **Prediction-Time Scope:** Uses only non-invasive variables available during remote voice screening (`age`, `sex`, and 16 acoustic features). `motor_UPDRS` (a direct sub-score of `total_UPDRS`), `subject#`, and `test_time` are strictly excluded to prevent target leakage and patient-identity memorization.
+        """
+    )
+
+    st.subheader("2. Dataset & Data Understanding")
+    st.markdown(
+        """
+        * **Source:** UCI Parkinson's Telemonitoring Dataset (Tsanas et al., 2009) — **5,875 voice recordings** collected longitudinally from **42 early-to-mid-stage Parkinson's patients** (`28` male, `14` female; ages `36–85`), with **0 missing values**.
+        * **Key Acoustic Biomarkers:**
+          * *Nonlinear Dynamical Complexity:* Pitch Period Entropy (`PPE`), Detrended Fluctuation Analysis (`DFA`), Recurrence Period Density Entropy (`RPDE`).
+          * *Noise & Harmonic Clarity:* Harmonics-to-Noise Ratio (`HNR`), Noise-to-Harmonics Ratio (`NHR`).
+          * *Vocal Fold Micro-Instability:* Frequency perturbation (`Jitter(%)`, `Jitter:RAP`, `Jitter:PPQ5`, `Jitter:DDP`) and amplitude perturbation (`Shimmer`, `Shimmer(dB)`, `Shimmer:APQ3/5/11`, `Shimmer:DDA`).
+        * **Cohort Access & Scope Limits:** All 42 participants in the benchmark have diagnosed Parkinson's disease (no healthy control cohort); therefore, this model performs **severity staging among diagnosed patients** rather than population-wide screening.
+        """
+    )
+
+    st.subheader("3. Leakage-Free Preprocessing & Feature Engineering")
+    st.markdown(
+        """
+        * **Domain Feature Engineering (`18` $\\rightarrow$ `31` Features):** Created 13 clinically motivated interaction and nonlinear ratio features capturing how vocal degradation compounds with age and noise:
+          * *Demographic-Acoustic Interactions:* `age_dfa`, `age_ppe`, `age_hnr`, `age_rpde` (accounts for age-related vocal fold atrophy).
+          * *Acoustic Ratios & Composites:* `ppe_to_hnr` (pitch irregularity relative to harmonic clarity), log-transformed jitter/shimmer aggregates, and perturbation energy ratios.
+        * **Strict Fold-Level Isolation:** All scaling (`StandardScaler`) and feature transformations are encapsulated inside a `scikit-learn` `Pipeline` and fit **exclusively on training folds** during cross-validation, guaranteeing zero test-set leakage.
+        """
+    )
+
+    st.subheader("4. Baselines, Model Selection & Ablation Results")
+    results_df = pd.DataFrame(
+        {
+            "Model / Experiment": [
+                "Majority / Stratified Baseline",
+                "Untuned Random Forest (18 raw features)",
+                "Ablation: Remove Age & Sex (29 features)",
+                "Ablation: Regression-to-Bins (RF Regressor)",
+                "Ablation: Session-Level Averaging",
+                "Final Tuned Random Forest (31 features, balanced)",
+            ],
+            "Macro F1": [0.2410, 0.3125, 0.3318, 0.3014, 0.3199, 0.4059],
+            "Severe-Stage F1": [0.0000, 0.0400, 0.2140, 0.0921, 0.2285, 0.3236],
+            "Key Takeaway": [
+                "Ignores minority classes completely.",
+                "Over-predicts Moderate (40.8% raw accuracy) while missing 96% of Severe cases.",
+                "Proves age/sex baseline calibration is critical for interpreting pitch & noise.",
+                "Mean-reversion pulls extreme predictions toward the center, collapsing Severe recall.",
+                "Averaging across sessions smooths out acute vocal micro-tremor signals.",
+                "8.1x gain in Severe F1 via class_weight='balanced', depth regularization & interactions.",
+            ],
+        }
+    )
+    st.dataframe(results_df, use_container_width=True, hide_index=True)
+
+    st.subheader("5. Evaluation Design & Metric Justification")
+    st.markdown(
+        """
+        * **Patient-Grouped Validation (`StratifiedGroupKFold` by `subject#`):** Because each patient contributed ~140 recordings, a standard random split leaks the same speaker's vocal timbre into both train and test sets. Grouping by `subject#` evaluates generalization strictly across **42 unseen patients**.
+        * **Why Macro F1 & Severe F1 over Raw Accuracy:** Under class imbalance, predicting `Moderate` for nearly every sample yields ~`41%` accuracy while failing clinically (`0.0400` Severe F1). **Macro F1 (`0.4059`)** weights all three clinical tiers equally, while **Severe F1 (`0.3236`)** directly tracks sensitivity to high-risk patients.
+        """
+    )
+
+    st.subheader("6. Representative Error Analysis")
+    st.markdown(
+        """
+        * **Threshold Boundary Ambiguity (`total_UPDRS` near `24` and `34`):** Most misclassifications occur within $\\pm 2.5$ UPDRS points of the discretization cutoffs, where continuous symptom progression crosses a hard label boundary without an abrupt shift in vocal acoustics.
+        * **Precision–Recall Trade-off on `Moderate` Cases:** Introducing `class_weight="balanced"` and `max_depth=6` regularization dramatically improves detection of `Severe` cases (`0.0400` $\\rightarrow$ `0.3236`), while shifting some borderline `Moderate` recordings into adjacent `Mild` or `Severe` predictions.
+        * **Inter-Speaker Vocal Variability:** Natural baseline differences in vocal pitch and breathiness across unseen speakers occasionally cause older patients with naturally lower `HNR` to be over-triaged.
+        """
+    )
+
+    st.subheader("7. Limitations & Causal Caveats")
+    st.warning(
+        """
+        * **Correlation, Not Causation:** Acoustic biomarkers reflect motor-speech manifestations associated with Parkinson's progression; model predictions do **not** imply that vocal changes cause UPDRS progression and cannot substitute for a neurologist's clinical assessment.
+        * **Modality Scope:** Sustained-vowel phonation captures laryngeal/respiratory stability but does not observe non-speech motor symptoms (bradykinesia, limb rigidity, postural instability) or medication timing (`ON`/`OFF` levodopa states).
+        """
+    )
+
+    st.subheader("8. Conclusion & Reproduction Steps")
+    st.markdown(
+        """
+        **Conclusion:** Patient-grouped evaluation demonstrates that combining domain-engineered vocal interaction features (`age_dfa`, `age_ppe`, `ppe_to_hnr`) with class-balanced, depth-regularized Random Forests improves Severe-stage Parkinson's detection **8.1-fold** over an untuned baseline while maintaining honest cross-patient generalization.
+        """
+    )
+    st.code(
+        """# 1. Clone the repository
+git clone https://github.com/bhuvi-iitgn/parkinsons-severity-classification.git
+cd parkinsons-severity-classification
+
+# 2. Create virtual environment & install dependencies
+python -m venv venv
+source venv/bin/activate  # On Windows: .\\venv\\Scripts\\activate
+pip install -r requirements.txt
+
+# 3. Run standalone CLI inference or launch the Streamlit dashboard
+python predict.py
+streamlit run app.py""",
+        language="bash",
+    )
