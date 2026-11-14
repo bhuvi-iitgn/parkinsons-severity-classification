@@ -122,7 +122,6 @@ python predict.py
 ---
 
 ## Future Improvements
-* **Interactive Web Interface:** Wrap `predict_severity()` in a lightweight Streamlit application (`app.py`) for interactive biomarker sliders and batch CSV uploads.
 * **Longitudinal Modeling:** Incorporate patient-specific baseline deltas (`test_time` progression trajectories) to measure how a patient's voice changes relative to their own earlier visits, rather than scoring each recording in isolation.
 * **Probability Calibration:** Applying isotonic or Platt scaling to sharpen confidence thresholds for clinical triage alerts, ensuring the predicted percentages closely match true real-world risk.
 
