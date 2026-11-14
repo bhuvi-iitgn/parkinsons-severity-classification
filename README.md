@@ -1,10 +1,10 @@
 # Parkinson's Disease Severity Classification (UCI Telemonitoring)
 
-An end-to-end machine learning pipeline that classifies Parkinson's disease clinical severity (**Mild**, **Moderate**, **Severe**) from non-invasive, sustained-vowel voice recordings—engineered with strict patient-grouped cross-validation to prevent identity leakage.
+An end-to-end machine learning pipeline that classifies Parkinson's disease clinical severity (**Mild**, **Moderate**, **Severe**) from non-invasive, sustained-vowel voice recordings, engineered with strict patient-grouped cross-validation to prevent identity leakage.
 
 ---
 
-## Overview & Clinical Motivation
+## Overview & Motivation
 
 Monitoring Parkinson's disease progression typically requires frequent in-clinic neurological exams using the **Unified Parkinson's Disease Rating Scale (`total_UPDRS`)**. Because vocal cord tremors and dysphonia appear early and progress alongside motor symptoms, acoustic telemonitoring offers a low-cost way to track disease severity remotely.
 
@@ -48,9 +48,9 @@ Five of these engineered features (`age_dfa`, `age_ppe`, `ppe_to_hnr`, `nonlinea
 
 ---
 
-## Experimental Progression & Ablation Results
+## Experimental Progression & Hypothesis Testing
 
-### Key Diagnostic Findings
+### Key Findings
 1. **Baseline Severe-Class Collapse (Phase 3):** Default untuned models trained on raw features gravitated toward the majority `Moderate` class, scoring just **0.01** (Logistic Regression) and **0.04** (Random Forest) F1 on `Severe (2)` cases while overfitting to raw patient demographics.
 2. **Controlled Ablations (Phase 4B):**
    * *Sex-Normalized Biomarkers (dropping `age`/`sex`):* Dropped Macro F1 to **0.3318**, confirming that `age` carries genuine clinical progression signal rather than pure noise.
@@ -123,5 +123,5 @@ python predict.py
 
 ## Future Improvements
 * **Interactive Web Interface:** Wrap `predict_severity()` in a lightweight Streamlit application (`app.py`) for interactive biomarker sliders and batch CSV uploads.
-* **Longitudinal Modeling:** Incorporate patient-specific baseline deltas (`test_time` progression trajectories) for repeat telemonitoring visits.
-* **Probability Calibration:** Apply isotonic or Platt scaling to sharpen confidence thresholds for clinical triage alerts.
+* **Longitudinal Modeling:** Incorporate patient-specific baseline deltas (`test_time` progression trajectories) to measure how a patient's voice changes relative to their own earlier visits, rather than scoring each recording in isolation.
+* **Probability Calibration:** Applying isotonic or Platt scaling to sharpen confidence thresholds for clinical triage alerts, ensuring the predicted percentages closely match true real-world risk.
