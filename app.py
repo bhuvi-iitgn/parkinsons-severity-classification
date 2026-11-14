@@ -30,10 +30,9 @@ with st.sidebar:
         """
         **Project:** Parkinson's Disease Severity Classification  
         **Author:** Bhuvi Kalarwal  
-        **Roll no.:** 24110076
-        **Course:** `ES 335: Machine Learning`  
-        **Roll no.:** 24110076
-        **Institution:** IIT Gandhinagar  
+        **Roll no.:** 24110076  
+        **Course:** ES 335: Machine Learning  
+        **Institution:** IIT Gandhinagar
 
         ---
         **Resources:**  
