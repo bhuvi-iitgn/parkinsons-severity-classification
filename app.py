@@ -24,6 +24,26 @@ st.caption(
     "voice biomarkers — powered by a patient-grouped Random Forest model."
 )
 
+with st.sidebar:
+    st.header("Project Information")
+    st.markdown(
+        """
+        **Project:** Parkinson's Disease Severity Classification  
+        **Author:** Bhuvi Kalarwal  
+        **Course:** `ES 335: Machine Learning`  
+        **Institution:** IIT Gandhinagar  
+
+        ---
+        **Resources:**  
+        - [GitHub Repository](https://github.com/bhuvi-iitgn/parkinsons-severity-classification)  
+        - **Dataset:** UCI Parkinson's Telemonitoring (5,875 recordings, 42 patients)  
+
+        ---
+        **Acknowledgments:**  
+        Built with assistance from **Google Gemini** for pipeline structuring, editing, coding and Streamlit web deployment.
+        """
+    )
+
 tab_single, tab_batch, tab_about = st.tabs(
     ["Single Recording Predictor", "Batch CSV Scoring", "Model & Benchmarks"]
 )
