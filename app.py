@@ -21,7 +21,7 @@ feature_medians = raw_df.median(numeric_only=True)
 st.title("Parkinson's Disease Severity Classifier")
 st.caption(
     "Non-invasive UPDRS severity triage (Mild, Moderate, Severe) from sustained-vowel "
-    "voice biomarkers — powered by a patient-grouped Random Forest model."
+    "voice biomarkers - powered by a patient-grouped Random Forest model."
 )
 
 with st.sidebar:
@@ -30,7 +30,9 @@ with st.sidebar:
         """
         **Project:** Parkinson's Disease Severity Classification  
         **Author:** Bhuvi Kalarwal  
+        **Roll no.:** 24110076
         **Course:** `ES 335: Machine Learning`  
+        **Roll no.:** 24110076
         **Institution:** IIT Gandhinagar  
 
         ---
